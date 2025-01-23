@@ -39,16 +39,23 @@ const TitleSection = ({ title, subheading, pill }: TitleSectionProps) => {
           <>
             <h2
               className="text-left
-        text-3xl
-        sm:text-5xl
-        sm:max-w-[750px]
-        md:text-center
-        font-semibold
-        "
+              text-3xl
+              sm:text-5xl
+              sm:max-w-[750px]
+              md:text-center
+              font-semibold
+              text-brand/brand-washedPurple
+              "
             >
               {title}
             </h2>
-            <p>{subheading}</p>
+            <p
+              className="
+            text-washed-Purple/washed-purple-700
+            "
+            >
+              {subheading}
+            </p>
           </>
         ) : (
           <h1
@@ -58,6 +65,7 @@ const TitleSection = ({ title, subheading, pill }: TitleSectionProps) => {
             sm:max-w-[850px]
             md:text-center
             font-semibold
+            text-brand/brand-washedPurple
             "
           >
             {title}
