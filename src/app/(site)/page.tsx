@@ -97,7 +97,6 @@ const HomePage = () => {
           after:w-20
           after:absolute
           after:z-10
-
           before:content['']
           before:dark:from-brand/brand-dark
           before:to-transparent
