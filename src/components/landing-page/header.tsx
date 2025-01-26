@@ -144,18 +144,16 @@ const Header = () => {
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href={"#"}>
-              <NavigationMenuLink
-                className={cn(navigationMenuTriggerStyle(), {
-                  "dark:text-white": path === "#testimonials",
-                  "dark:text-white/40": path !== "#testimonials",
-                  "font-normal": true,
-                  "text-xl": true,
-                })}
-              >
-                Testimonials
-              </NavigationMenuLink>
-            </Link>
+            <NavigationMenuLink
+              className={cn(navigationMenuTriggerStyle(), {
+                "dark:text-white": path === "#testimonials",
+                "dark:text-white/40": path !== "#testimonials",
+                "font-normal": true,
+                "text-xl": true,
+              })}
+            >
+              Testimonials
+            </NavigationMenuLink>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
@@ -178,7 +176,7 @@ const Header = () => {
 export default Header;
 
 const ListItem = React.forwardRef<
-  React.ElementRef<"a">,
+  React.ComponentRef<"a">,
   React.ComponentPropsWithoutRef<"a">
 >(({ title, children, ...props }, ref) => {
   return (

@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { FormSchema } from "../types";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import { cookies } from "next/headers";
 
 export async function actionLoginUser({
@@ -21,7 +22,9 @@ export async function actionSignUpUser({
   email,
   password,
 }: z.infer<typeof FormSchema>) {
-  const supabase = createRouteHandlerClient({ cookies });
+  const supabase = createRouteHandlerClient({
+    cookies,
+  });
   const { data } = await supabase
     .from("profiles")
     .select("*")
