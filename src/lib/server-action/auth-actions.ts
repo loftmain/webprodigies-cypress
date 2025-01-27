@@ -2,18 +2,21 @@
 
 import { z } from "zod";
 import { FormSchema } from "../types";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createClient } from "../supabase/server";
 
 export async function actionLoginUser({
   email,
   password,
 }: z.infer<typeof FormSchema>) {
-  const supabase = createRouteHandlerClient({ cookies });
+  // deseperated
+  //const supabase = createRouteHandlerClient({ cookies });
+  const supabase = await createClient();
   const response = await supabase.auth.signInWithPassword({
     email,
     password,
   });
+
+  // 기존에 없던 코드라 문제시 확인 해봐야함.
   return response;
 }
 
@@ -21,9 +24,10 @@ export async function actionSignUpUser({
   email,
   password,
 }: z.infer<typeof FormSchema>) {
-  const supabase = createRouteHandlerClient({
-    cookies,
-  });
+  // deseperated
+  // const supabase = createRouteHandlerClient({ cookies });
+  const supabase = await createClient();
+
   const { data } = await supabase
     .from("profiles")
     .select("*")
