@@ -1,15 +1,14 @@
 import { InferSelectModel } from "drizzle-orm";
 import {
+  folders,
+  products,
+  prices,
+  subscriptions,
   customers,
   files,
-  folder,
-  prices,
-  products,
-  subscriptions,
   users,
-  workspace,
+  workspaces,
 } from "../../../migrations/schema";
-
 export type Json =
   | string
   | number
@@ -105,7 +104,7 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "files_folder_id_folders_id_fk";
+            foreignKeyName: "files_folder_id_folder_id_fk";
             columns: ["folder_id"];
             isOneToOne: false;
             referencedRelation: "folders";
@@ -115,7 +114,7 @@ export type Database = {
             foreignKeyName: "files_workspace_id_workspace_id_fk";
             columns: ["workspace_id"];
             isOneToOne: false;
-            referencedRelation: "workspace";
+            referencedRelation: "workspaces";
             referencedColumns: ["id"];
           }
         ];
@@ -153,10 +152,10 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "folders_workspace_id_workspace_id_fk";
+            foreignKeyName: "folder_workspace_id_workspace_id_fk";
             columns: ["workspace_id"];
             isOneToOne: false;
-            referencedRelation: "workspace";
+            referencedRelation: "workspaces";
             referencedColumns: ["id"];
           }
         ];
@@ -349,7 +348,7 @@ export type Database = {
           }
         ];
       };
-      workspace: {
+      workspaces: {
         Row: {
           banner_url: string | null;
           created_at: string | null;
@@ -508,9 +507,9 @@ export type CompositeTypes<
   : never;
 
 // workspace import할때 /imgrations/schema.ts를 택해야 함.
-export type workspace = InferSelectModel<typeof workspace>;
+export type workspace = InferSelectModel<typeof workspaces>;
 export type user = InferSelectModel<typeof users>;
-export type Folder = InferSelectModel<typeof folder>;
+export type Folder = InferSelectModel<typeof folders>;
 export type File = InferSelectModel<typeof files>;
 export type Product = InferSelectModel<typeof products>;
 export type Customer = InferSelectModel<typeof customers>;
