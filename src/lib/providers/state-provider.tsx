@@ -22,7 +22,11 @@ interface AppState {
 
 type Action =
   | { type: "ADD_WORKSPACE"; payload: appWorkspacesType }
-  | { type: "DELETE_WORKSPACE"; payload: string };
+  | { type: "DELETE_WORKSPACE"; payload: string }
+  | {
+      type: "SET_WORKSPACES";
+      payload: { workspaces: appWorkspacesType[] | [] };
+    };
 
 const initalState: AppState = { workspaces: [] };
 
@@ -42,6 +46,11 @@ const appReducer = (
         workspaces: state.workspaces.filter(
           (workspace) => workspace.id !== action.payload
         ),
+      };
+    case "SET_WORKSPACES":
+      return {
+        ...state,
+        workspaces: action.payload.workspaces,
       };
     default:
       return initalState;

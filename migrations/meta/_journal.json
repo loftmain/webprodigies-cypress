@@ -8,6 +8,13 @@
       "when": 1738066405454,
       "tag": "0000_complex_scourge",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1738139790692,
+      "tag": "0001_real_grey_gargoyle",
+      "breakpoints": true
     }
   ]
 }

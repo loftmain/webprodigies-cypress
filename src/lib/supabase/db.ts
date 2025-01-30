@@ -11,6 +11,7 @@ if (!process.env.DATABASE_URL) {
 
 const client = postgres(process.env.DATABASE_URL as string, { max: 1 });
 const db = drizzle(client, { schema });
+/*
 const migrateDb = async () => {
   try {
     console.log("🟠 Migrating client");
@@ -21,4 +22,5 @@ const migrateDb = async () => {
   }
 };
 migrateDb();
+*/
 export default db;
