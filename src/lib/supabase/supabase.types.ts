@@ -508,7 +508,7 @@ export type CompositeTypes<
 
 // workspace import할때 /imgrations/schema.ts를 택해야 함.
 export type workspace = InferSelectModel<typeof workspaces>;
-export type user = InferSelectModel<typeof users>;
+export type User = InferSelectModel<typeof users>;
 export type Folder = InferSelectModel<typeof folders>;
 export type File = InferSelectModel<typeof files>;
 export type Product = InferSelectModel<typeof products>;
@@ -516,7 +516,7 @@ export type Customer = InferSelectModel<typeof customers>;
 export type Price = InferSelectModel<typeof prices> & {
   products?: Product;
 };
-export type subscription = InferSelectModel<typeof subscriptions> & {
+export type Subscription = InferSelectModel<typeof subscriptions> & {
   prices: Price;
 };
 // 커스텀 타입 (Product + prices)

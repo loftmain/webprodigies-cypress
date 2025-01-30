@@ -3,7 +3,7 @@
 import { validate } from "uuid";
 import { folders, users, workspaces } from "../../../migrations/schema";
 import db from "./db";
-import { Folder, subscription, workspace } from "./supabase.types";
+import { Folder, Subscription, workspace } from "./supabase.types";
 import { and, eq, notExists } from "drizzle-orm";
 import { collaborators } from "./schema";
 
@@ -12,7 +12,7 @@ export const getUserSubscrptionStatus = async (userId: string) => {
     const data = await db.query.subscriptions.findFirst({
       where: (s, { eq }) => eq(s.userId, userId),
     });
-    if (data) return { data: data as subscription, error: null };
+    if (data) return { data: data as Subscription, error: null };
     else return { data: null, error: null };
   } catch (error) {
     console.log(error);
