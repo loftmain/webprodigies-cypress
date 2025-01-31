@@ -6,6 +6,24 @@ export const pricingType = pgEnum("pricing_type", ['one_time', 'recurring'])
 export const subscriptionStatus = pgEnum("subscription_status", ['trialing', 'active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'unpaid'])
 
 
+export const collaborators = pgTable("collaborators", {
+	workspaceId: uuid("workspace_id").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	userId: uuid("user_id").notNull(),
+	id: uuid().defaultRandom().primaryKey().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "collaborators_user_id_users_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.workspaceId],
+			foreignColumns: [workspaces.id],
+			name: "collaborators_workspace_id_workspaces_id_fk"
+		}).onDelete("cascade"),
+]);
+
 export const files = pgTable("files", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }),

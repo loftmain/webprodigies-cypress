@@ -1,4 +1,5 @@
 import Sidebar from "@/components/sidebar/sidebar";
+import { Toaster } from "@/components/ui/toaster";
 import React from "react";
 
 interface LayoutProps {
@@ -13,6 +14,7 @@ const Layout: React.FC<LayoutProps> = ({ children, params }) => {
       <div className="dark:border-Neutrals/neutrals-12/70 border-l-[1px] w-full relative overflow-scroll">
         {children}
       </div>
+      <Toaster />
     </main>
   );
 };
