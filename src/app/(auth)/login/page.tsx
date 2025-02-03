@@ -18,8 +18,8 @@ import Image from "next/image";
 import Logo from "../../../../public/cypresslogo.svg";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import Loader from "@/components/Loader";
-import { actionLoginUser } from "@/lib/server-action/auth-action";
+import Loader from "@/components/global/Loader";
+import { actionLoginUser } from "@/lib/server-action/auth-actions";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -43,7 +43,6 @@ const LoginPage = () => {
     }
     router.replace("/dashboard");
   };
-
   return (
     <Form {...form}>
       <form
@@ -71,26 +70,39 @@ const LoginPage = () => {
           An all-In-One Collaboration and Productivity Platform
         </FormDescription>
         <FormField
-          disabled={isLoading}
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input type="email" placeholder="Email" {...field} />
+                {/* disabled 이슈>> FormField에 disabled값이 들어가게 되면 
+                 react-hook-form Cannot update a component (`LoginPage`) while rendering a different component (`Controller`). 
+                 To locate the bad setState() call inside `Controller`,' 에러 발생 
+                 나중에 https://github.com/facebook/react/issues/18178를 이해해보자
+                 */}
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  disabled={isLoading}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <FormField
-          disabled={isLoading}
           control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input type="password" placeholder="Password" {...field} />
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  disabled={isLoading}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -106,7 +118,7 @@ const LoginPage = () => {
           {!isLoading ? "Login" : <Loader />}
         </Button>
         <span className="self-centers">
-          Don't have an account?{" "}
+          Dont have an account?{" "}
           <Link href="/signup" className="text-primary">
             Sign Up
           </Link>

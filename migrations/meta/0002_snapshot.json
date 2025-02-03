@@ -1,9 +1,114 @@
 {
-  "id": "00000000-0000-0000-0000-000000000000",
-  "prevId": "",
+  "id": "ad1b330c-7cd2-4c4c-b3ad-21915f350061",
+  "prevId": "32924acb-8d1b-4055-9dbb-8edf1a605f2d",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.collaborators": {
+      "name": "collaborators",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "collaborators_workspace_id_workspaces_id_fk": {
+          "name": "collaborators_workspace_id_workspaces_id_fk",
+          "tableFrom": "collaborators",
+          "tableTo": "workspaces",
+          "columnsFrom": [
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "collaborators_user_id_users_id_fk": {
+          "name": "collaborators_user_id_users_id_fk",
+          "tableFrom": "collaborators",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.customers": {
+      "name": "customers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "stripe_customer_id": {
+          "name": "stripe_customer_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "customers_id_fkey": {
+          "name": "customers_id_fkey",
+          "tableFrom": "customers",
+          "tableTo": "users",
+          "columnsFrom": [
+            "id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.files": {
       "name": "files",
       "schema": "",
@@ -70,7 +175,6 @@
           "name": "files_folder_id_folder_id_fk",
           "tableFrom": "files",
           "tableTo": "folders",
-          "schemaTo": "public",
           "columnsFrom": [
             "folder_id"
           ],
@@ -84,7 +188,6 @@
           "name": "files_workspace_id_workspace_id_fk",
           "tableFrom": "files",
           "tableTo": "workspaces",
-          "schemaTo": "public",
           "columnsFrom": [
             "workspace_id"
           ],
@@ -97,8 +200,8 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
       "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.folders": {
@@ -161,7 +264,6 @@
           "name": "folder_workspace_id_workspace_id_fk",
           "tableFrom": "folders",
           "tableTo": "workspaces",
-          "schemaTo": "public",
           "columnsFrom": [
             "workspace_id"
           ],
@@ -174,264 +276,9 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
       "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
-    },
-    "public.customers": {
-      "name": "customers",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "stripe_customer_id": {
-          "name": "stripe_customer_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "customers_id_fkey": {
-          "name": "customers_id_fkey",
-          "tableFrom": "customers",
-          "tableTo": "users",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {},
-      "policies": {},
-      "isRLSEnabled": false
-    },
-    "public.workspaces": {
-      "name": "workspaces",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "workspace_owner": {
-          "name": "workspace_owner",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "icon_id": {
-          "name": "icon_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "data": {
-          "name": "data",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "in_trash": {
-          "name": "in_trash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "logo": {
-          "name": "logo",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "banner_url": {
-          "name": "banner_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {},
-      "policies": {},
-      "isRLSEnabled": false
-    },
-    "public.users": {
-      "name": "users",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "full_name": {
-          "name": "full_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "avatar_url": {
-          "name": "avatar_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "billing_address": {
-          "name": "billing_address",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "payment_method": {
-          "name": "payment_method",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "users_id_fkey": {
-          "name": "users_id_fkey",
-          "tableFrom": "users",
-          "tableTo": "users",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {},
-      "policies": {
-        "Everyone Can view user data.": {
-          "name": "Everyone Can view user data.",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "public"
-          ],
-          "using": "true"
-        },
-        "Can update own user data.": {
-          "name": "Can update own user data.",
-          "as": "PERMISSIVE",
-          "for": "UPDATE",
-          "to": [
-            "public"
-          ]
-        }
-      },
-      "isRLSEnabled": true
-    },
-    "public.products": {
-      "name": "products",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "active": {
-          "name": "active",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "image": {
-          "name": "image",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "metadata": {
-          "name": "metadata",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {},
-      "policies": {
-        "Allow public read-only access.": {
-          "name": "Allow public read-only access.",
-          "as": "PERMISSIVE",
-          "for": "SELECT",
-          "to": [
-            "public"
-          ],
-          "using": "true"
-        }
-      },
-      "isRLSEnabled": true
     },
     "public.prices": {
       "name": "prices",
@@ -512,7 +359,6 @@
           "name": "prices_product_id_fkey",
           "tableFrom": "prices",
           "tableTo": "products",
-          "schemaTo": "public",
           "columnsFrom": [
             "product_id"
           ],
@@ -525,12 +371,6 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {
-        "prices_currency_check": {
-          "name": "prices_currency_check",
-          "value": "char_length(currency) = 3"
-        }
-      },
       "policies": {
         "Allow public read-only access.": {
           "name": "Allow public read-only access.",
@@ -542,7 +382,72 @@
           "using": "true"
         }
       },
-      "isRLSEnabled": true
+      "checkConstraints": {
+        "prices_currency_check": {
+          "name": "prices_currency_check",
+          "value": "char_length(currency) = 3"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.products": {
+      "name": "products",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "Allow public read-only access.": {
+          "name": "Allow public read-only access.",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "public"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.subscriptions": {
       "name": "subscriptions",
@@ -654,7 +559,6 @@
           "name": "subscriptions_price_id_fkey",
           "tableFrom": "subscriptions",
           "tableTo": "prices",
-          "schemaTo": "public",
           "columnsFrom": [
             "price_id"
           ],
@@ -668,7 +572,6 @@
           "name": "subscriptions_user_id_fkey",
           "tableFrom": "subscriptions",
           "tableTo": "users",
-          "schemaTo": "public",
           "columnsFrom": [
             "user_id"
           ],
@@ -681,7 +584,6 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {},
       "policies": {
         "Can only view own subs data.": {
           "name": "Can only view own subs data.",
@@ -693,30 +595,187 @@
           "using": "(( SELECT auth.uid() AS uid) = user_id)"
         }
       },
-      "isRLSEnabled": true
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avatar_url": {
+          "name": "avatar_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "billing_address": {
+          "name": "billing_address",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "payment_method": {
+          "name": "payment_method",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "users_id_fkey": {
+          "name": "users_id_fkey",
+          "tableFrom": "users",
+          "tableTo": "users",
+          "columnsFrom": [
+            "id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "Everyone Can view user data.": {
+          "name": "Everyone Can view user data.",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "public"
+          ],
+          "using": "true"
+        },
+        "Can update own user data.": {
+          "name": "Can update own user data.",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "public"
+          ]
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.workspaces": {
+      "name": "workspaces",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "workspace_owner": {
+          "name": "workspace_owner",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "icon_id": {
+          "name": "icon_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "in_trash": {
+          "name": "in_trash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "logo": {
+          "name": "logo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "banner_url": {
+          "name": "banner_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {
     "public.pricing_plan_interval": {
       "name": "pricing_plan_interval",
+      "schema": "public",
       "values": [
         "day",
         "week",
         "month",
         "year"
-      ],
-      "schema": "public"
+      ]
     },
     "public.pricing_type": {
       "name": "pricing_type",
+      "schema": "public",
       "values": [
         "one_time",
         "recurring"
-      ],
-      "schema": "public"
+      ]
     },
     "public.subscription_status": {
       "name": "subscription_status",
+      "schema": "public",
       "values": [
         "trialing",
         "active",
@@ -725,8 +784,7 @@
         "incomplete_expired",
         "past_due",
         "unpaid"
-      ],
-      "schema": "public"
+      ]
     }
   },
   "schemas": {},
@@ -735,11 +793,8 @@
   "policies": {},
   "views": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "internal": {
     "tables": {}
   }
 }

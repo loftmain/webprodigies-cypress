@@ -6,20 +6,21 @@ export const pricingType = pgEnum("pricing_type", ['one_time', 'recurring'])
 export const subscriptionStatus = pgEnum("subscription_status", ['trialing', 'active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'unpaid'])
 
 
-export const folder = pgTable("folder", {
+export const collaborators = pgTable("collaborators", {
+	workspaceId: uuid("workspace_id").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	userId: uuid("user_id").notNull(),
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }),
-	title: text().notNull(),
-	iconId: text("icon_id").notNull(),
-	data: text(),
-	inTrash: text("in_trash"),
-	bannerUrl: text("banner_url"),
-	workspaceId: uuid("workspace_id"),
 }, (table) => [
 	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "collaborators_user_id_users_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
 			columns: [table.workspaceId],
-			foreignColumns: [workspace.id],
-			name: "folder_workspace_id_workspace_id_fk"
+			foreignColumns: [workspaces.id],
+			name: "collaborators_workspace_id_workspaces_id_fk"
 		}).onDelete("cascade"),
 ]);
 
@@ -36,17 +37,45 @@ export const files = pgTable("files", {
 }, (table) => [
 	foreignKey({
 			columns: [table.folderId],
-			foreignColumns: [folder.id],
+			foreignColumns: [folders.id],
 			name: "files_folder_id_folder_id_fk"
 		}).onDelete("cascade"),
 	foreignKey({
 			columns: [table.workspaceId],
-			foreignColumns: [workspace.id],
+			foreignColumns: [workspaces.id],
 			name: "files_workspace_id_workspace_id_fk"
 		}).onDelete("cascade"),
 ]);
 
-export const workspace = pgTable("workspace", {
+export const folders = pgTable("folders", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }),
+	title: text().notNull(),
+	iconId: text("icon_id").notNull(),
+	data: text(),
+	inTrash: text("in_trash"),
+	bannerUrl: text("banner_url"),
+	workspaceId: uuid("workspace_id"),
+}, (table) => [
+	foreignKey({
+			columns: [table.workspaceId],
+			foreignColumns: [workspaces.id],
+			name: "folder_workspace_id_workspace_id_fk"
+		}).onDelete("cascade"),
+]);
+
+export const customers = pgTable("customers", {
+	id: uuid().primaryKey().notNull(),
+	stripeCustomerId: text("stripe_customer_id"),
+}, (table) => [
+	foreignKey({
+			columns: [table.id],
+			foreignColumns: [users.id],
+			name: "customers_id_fkey"
+		}),
+]);
+
+export const workspaces = pgTable("workspaces", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }),
 	workspaceOwner: uuid("workspace_owner").notNull(),
@@ -72,19 +101,8 @@ export const users = pgTable("users", {
 			foreignColumns: [table.id],
 			name: "users_id_fkey"
 		}),
-	pgPolicy("Can update own user data.", { as: "permissive", for: "update", to: ["public"], using: sql`(( SELECT auth.uid() AS uid) = id)` }),
-	pgPolicy("Everyone Can view user data.", { as: "permissive", for: "select", to: ["public"] }),
-]);
-
-export const customers = pgTable("customers", {
-	id: uuid().primaryKey().notNull(),
-	stripeCustomerId: text("stripe_customer_id"),
-}, (table) => [
-	foreignKey({
-			columns: [table.id],
-			foreignColumns: [users.id],
-			name: "customers_id_fkey"
-		}),
+	pgPolicy("Everyone Can view user data.", { as: "permissive", for: "select", to: ["public"], using: sql`true` }),
+	pgPolicy("Can update own user data.", { as: "permissive", for: "update", to: ["public"] }),
 ]);
 
 export const products = pgTable("products", {
