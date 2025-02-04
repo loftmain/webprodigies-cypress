@@ -10,6 +10,10 @@ import { redirect } from "next/navigation";
 import React from "react";
 import { twMerge } from "tailwind-merge";
 import WorkspaceDropdown from "./workspace-dropdown";
+import PlanUsage from "./plan-usage";
+import NativeNavigation from "./native-navigation";
+import { ScrollArea } from "../ui/scroll-area";
+import FolderDropdownList from "./folder-dropdown-list";
 
 interface SidebarProps {
   params: { workspaceId: string };
@@ -25,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = async ({ params, className }) => {
 
   if (!user) return;
   // subscr 구독 상태 체크
-  const { data: scbscription, error: subscriptionError } =
+  const { data: subscriptionData, error: subscriptionError } =
     await getUserSubscrptionStatus(user.id);
 
   // folders 폴더 체크
@@ -62,6 +66,21 @@ const Sidebar: React.FC<SidebarProps> = async ({ params, className }) => {
             ...sharedWorkspaces,
           ].find((workspace) => workspace.id === workspaceId)}
         />
+        <PlanUsage
+          foldersLength={workspaceFolderData?.length || 0}
+          subscription={subscriptionData}
+        />
+        <NativeNavigation myWorkspaceId={workspaceId} />
+        <ScrollArea className="overflow-auto relative h-[450px]">
+          <div
+            className="pointer-events-none w-full absolute bottom-0 h-20 bg-gradient-to-t
+          from-background to-transparent z-40"
+          />
+          <FolderDropdownList
+            workspaceFolders={workspaceFolderData}
+            workspaceId={workspaceId}
+          />
+        </ScrollArea>
       </div>
     </aside>
   );

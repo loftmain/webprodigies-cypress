@@ -26,6 +26,10 @@ type Action =
   | {
       type: "SET_WORKSPACES";
       payload: { workspaces: appWorkspacesType[] | [] };
+    }
+  | {
+      type: "SET_FOLDERS";
+      payload: { workspaceId: string; folders: Folder[] | appFoldersType[] };
     };
 
 const initalState: AppState = { workspaces: [] };
@@ -52,22 +56,37 @@ const appReducer = (
         ...state,
         workspaces: action.payload.workspaces,
       };
+    case "SET_FOLDERS":
+      return {
+        ...state,
+        workspaces: state.workspaces.map((workspace) => {
+          if (workspace.id === action.payload.workspaceId) {
+            return {
+              ...workspace,
+              folders: action.payload.folders.sort(
+                (a, b) =>
+                  new Date(a.createdAt).getTime() -
+                  new Date(b.createdAt).getTime()
+              ),
+            };
+          }
+        }),
+      };
     default:
       return initalState;
   }
 };
 
-const AppStateContext =
-  createContext<
-    | {
-        state: AppState;
-        dispatch: Dispatch<Action>;
-        workspaceId: string | undefined;
-        folderId: string | undefined;
-        fileId: string | undefined;
-      }
-    | undefined
-  >(undefined);
+const AppStateContext = createContext<
+  | {
+      state: AppState;
+      dispatch: Dispatch<Action>;
+      workspaceId: string | undefined;
+      folderId: string | undefined;
+      fileId: string | undefined;
+    }
+  | undefined
+>(undefined);
 
 interface AppStateProviderProps {
   children: React.ReactNode;
