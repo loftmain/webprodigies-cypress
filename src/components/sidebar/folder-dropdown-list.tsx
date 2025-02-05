@@ -20,9 +20,21 @@ const FolderDropdownList: React.FC<FolderDropdownListProps> = ({
   //effect set inital state server app state
   useEffect(() => {
     if (workspaceFolders.length > 0) {
-      dispatch({ type: "SET_FOLDERS", payload: workspaceFolders });
+      dispatch({
+        type: "SET_FOLDERS",
+        payload: {
+          workspaceId,
+          folders: workspaceFolders.map((folder) => ({
+            ...folder,
+            files:
+              state.workspaces
+                .find((workspace) => workspace.id === workspaceId)
+                ?.folders.find((f) => f.id === folder.id)?.files || [],
+          })),
+        },
+      });
     }
-  }, []);
+  }, [workspaceFolders, workspaceId]);
 
   //state
 
