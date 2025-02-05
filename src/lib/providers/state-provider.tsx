@@ -30,6 +30,18 @@ type Action =
   | {
       type: "SET_FOLDERS";
       payload: { workspaceId: string; folders: Folder[] | appFoldersType[] };
+    }
+  | {
+      type: "ADD_FOLDER";
+      payload: { workspaceId: string; folder: appFoldersType };
+    }
+  | {
+      type: "UPDATE_FOLDER";
+      payload: {
+        workspaceId: string;
+        folderId: string;
+        folder: Partial<appFoldersType>;
+      };
     };
 
 const initalState: AppState = { workspaces: [] };
@@ -63,13 +75,57 @@ const appReducer = (
           if (workspace.id === action.payload.workspaceId) {
             return {
               ...workspace,
-              folders: action.payload.folders.sort(
+              folders: action.payload.folders
+                .sort(
+                  (a, b) =>
+                    new Date(a.createdAt).getTime() -
+                    new Date(b.createdAt).getTime()
+                )
+                .map((folder) => {
+                  // TODO: 해당 부분에 대해서 잘 이해되지 않음.
+                  return {
+                    ...folder,
+                    files: (folder as appFoldersType).files,
+                  };
+                }),
+            };
+          }
+          return workspace;
+        }),
+      };
+    case "ADD_FOLDER":
+      return {
+        ...state,
+        workspaces: state.workspaces.map((workspace) => {
+          if (workspace.id === action.payload.workspaceId) {
+            return {
+              ...workspace,
+              folders: [...workspace.folders, action.payload.folder].sort(
                 (a, b) =>
                   new Date(a.createdAt).getTime() -
                   new Date(b.createdAt).getTime()
               ),
             };
           }
+          return workspace;
+        }),
+      };
+    case "UPDATE_FOLDER":
+      return {
+        ...state,
+        workspaces: state.workspaces.map((workspace) => {
+          if (workspace.id === action.payload.workspaceId) {
+            return {
+              ...workspace,
+              folders: workspace.folders.map((folder) => {
+                if (folder.id === action.payload.folderId) {
+                  return { ...folder, ...action.payload.folder };
+                }
+                return folder;
+              }),
+            };
+          }
+          return workspace;
         }),
       };
     default:

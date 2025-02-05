@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = async ({ params, className }) => {
           from-background to-transparent z-40"
           />
           <FolderDropdownList
-            workspaceFolders={workspaceFolderData}
+            workspaceFolders={workspaceFolderData || []}
             workspaceId={workspaceId}
           />
         </ScrollArea>
