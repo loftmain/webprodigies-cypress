@@ -149,6 +149,7 @@ export const updateFolder = async (
     await db.update(folders).set(folder).where(eq(folders.id, folderId));
     return { data: null, error: null };
   } catch (error) {
+    console.log(error);
     return { data: null, error: null };
   }
 };

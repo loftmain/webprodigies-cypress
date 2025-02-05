@@ -20,6 +20,8 @@ interface DropdownProps {
   disabled?: boolean;
 }
 
+// 6:03:46
+
 const Dropdown: React.FC<DropdownProps> = ({
   title,
   id,
@@ -79,6 +81,10 @@ const Dropdown: React.FC<DropdownProps> = ({
     const fId = id.split("folder");
     if (fId?.length === 1) {
       if (!folderTitle) return;
+      toast({
+        title: "Success",
+        description: "Folder title changed.",
+      });
       await updateFolder({ title }, fId[0]);
     }
 
@@ -125,7 +131,11 @@ const Dropdown: React.FC<DropdownProps> = ({
     if (fid.length === 1) {
       dispatch({
         type: "UPDATE_FOLDER",
-        payload: { folder: { title }, folderId: fid[0], workspaceId },
+        payload: {
+          folder: { title: e.target.value },
+          folderId: fid[0],
+          workspaceId,
+        },
       });
     }
   };
