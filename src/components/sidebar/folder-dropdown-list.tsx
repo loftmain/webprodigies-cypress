@@ -59,6 +59,7 @@ const FolderDropdownList: React.FC<FolderDropdownListProps> = ({
 
   //add folder
   const addFolderHandler = async () => {
+    //WIP subscription modal
     //if (folders.length >= 3 && !subscription) {
     //}
 

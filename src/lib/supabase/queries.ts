@@ -1,9 +1,9 @@
 "use server";
 
 import { validate } from "uuid";
-import { folders, users, workspaces } from "../../../migrations/schema";
+import { files, folders, users, workspaces } from "../../../migrations/schema";
 import db from "./db";
-import { Folder, Subscription, User, workspace } from "./supabase.types";
+import { File, Folder, Subscription, User, workspace } from "./supabase.types";
 import { and, eq, ilike, notExists } from "drizzle-orm";
 import { collaborators } from "./schema";
 
@@ -120,6 +120,22 @@ export const getSharedWorkspaces = async (userId: string) => {
   return sharedWorkspaces;
 };
 
+export const getFiles = async (folderId: string) => {
+  const isValid = validate(folderId);
+  if (!isValid) return { data: null, error: "Error" };
+  try {
+    const results = (await db
+      .select()
+      .from(files)
+      .orderBy(files.createdAt)
+      .where(eq(files.folderId, folderId))) as File[] | [];
+    return { data: results, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: null, error: "Error" };
+  }
+};
+
 export const addCollaborators = async (users: User[], workspaceId: string) => {
   const response = users.forEach(async (user: User) => {
     const userExists = await db.query.collaborators.findFirst({
@@ -141,6 +157,16 @@ export const createFolder = async (folder: Folder) => {
   }
 };
 
+export const createFile = async (file: File) => {
+  try {
+    await db.insert(files).values(file);
+    return { data: null, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: null, error: "Error" };
+  }
+};
+
 export const updateFolder = async (
   folder: Partial<Folder>,
   folderId: string
@@ -150,7 +176,17 @@ export const updateFolder = async (
     return { data: null, error: null };
   } catch (error) {
     console.log(error);
+    return { data: null, error: "Error" };
+  }
+};
+
+export const updateFile = async (file: Partial<File>, fileId: string) => {
+  try {
+    await db.update(files).set(file).where(eq(files.id, fileId));
     return { data: null, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: null, error: "Error" };
   }
 };
 

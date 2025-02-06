@@ -10,6 +10,7 @@ import {
 } from "react";
 import { File, Folder, workspace } from "../supabase/supabase.types";
 import { usePathname } from "next/navigation";
+import { getFiles } from "../supabase/queries";
 
 export type appFoldersType = Folder & { files: File[] | [] };
 export type appWorkspacesType = workspace & {
@@ -21,8 +22,6 @@ interface AppState {
 }
 
 type Action =
-  | { type: "ADD_WORKSPACE"; payload: appWorkspacesType }
-  | { type: "DELETE_WORKSPACE"; payload: string }
   | {
       type: "SET_WORKSPACES";
       payload: { workspaces: appWorkspacesType[] | [] };
@@ -32,8 +31,17 @@ type Action =
       payload: { workspaceId: string; folders: Folder[] | appFoldersType[] };
     }
   | {
+      type: "SET_FILES";
+      payload: { workspaceId: string; folderId: string; files: File[] };
+    }
+  | { type: "ADD_WORKSPACE"; payload: appWorkspacesType }
+  | {
       type: "ADD_FOLDER";
       payload: { workspaceId: string; folder: appFoldersType };
+    }
+  | {
+      type: "ADD_FILE";
+      payload: { file: File; folderId: string; workspaceId: string };
     }
   | {
       type: "UPDATE_FOLDER";
@@ -42,7 +50,17 @@ type Action =
         folderId: string;
         folder: Partial<appFoldersType>;
       };
-    };
+    }
+  | {
+      type: "UPDATE_FILE";
+      payload: {
+        workspaceId: string;
+        folderId: string;
+        fileId: string;
+        file: Partial<File>;
+      };
+    }
+  | { type: "DELETE_WORKSPACE"; payload: string };
 
 const initalState: AppState = { workspaces: [] };
 
@@ -51,18 +69,6 @@ const appReducer = (
   action: Action
 ): AppState => {
   switch (action.type) {
-    case "ADD_WORKSPACE":
-      return {
-        ...state,
-        workspaces: [...state.workspaces, action.payload],
-      };
-    case "DELETE_WORKSPACE":
-      return {
-        ...state,
-        workspaces: state.workspaces.filter(
-          (workspace) => workspace.id !== action.payload
-        ),
-      };
     case "SET_WORKSPACES":
       return {
         ...state,
@@ -93,6 +99,36 @@ const appReducer = (
           return workspace;
         }),
       };
+    case "SET_FILES":
+      return {
+        ...state,
+        workspaces: state.workspaces.map((workspace) => {
+          if (workspace.id === action.payload.workspaceId) {
+            return {
+              ...workspace,
+              folders: workspace.folders.map((folder) => {
+                if (folder.id === action.payload.folderId) {
+                  return {
+                    ...folder,
+                    files: action.payload.files.sort(
+                      (a, b) =>
+                        new Date(a.createdAt).getTime() -
+                        new Date(b.createdAt).getTime()
+                    ),
+                  };
+                }
+                return folder;
+              }),
+            };
+          }
+          return workspace;
+        }),
+      };
+    case "ADD_WORKSPACE":
+      return {
+        ...state,
+        workspaces: [...state.workspaces, action.payload],
+      };
     case "ADD_FOLDER":
       return {
         ...state,
@@ -105,6 +141,31 @@ const appReducer = (
                   new Date(a.createdAt).getTime() -
                   new Date(b.createdAt).getTime()
               ),
+            };
+          }
+          return workspace;
+        }),
+      };
+    case "ADD_FILE":
+      return {
+        ...state,
+        workspaces: state.workspaces.map((workspace) => {
+          if (workspace.id === action.payload.workspaceId) {
+            return {
+              ...workspace,
+              folders: workspace.folders.map((folder) => {
+                if (folder.id === action.payload.folderId) {
+                  return {
+                    ...folder,
+                    files: [...folder.files, action.payload.file].sort(
+                      (a, b) =>
+                        new Date(a.createdAt).getTime() -
+                        new Date(b.createdAt).getTime()
+                    ),
+                  };
+                }
+                return folder;
+              }),
             };
           }
           return workspace;
@@ -128,6 +189,43 @@ const appReducer = (
           return workspace;
         }),
       };
+    case "UPDATE_FILE":
+      return {
+        ...state,
+        workspaces: state.workspaces.map((workspace) => {
+          if (workspace.id === action.payload.workspaceId) {
+            return {
+              ...workspace,
+              folders: workspace.folders.map((folder) => {
+                if (folder.id === action.payload.folderId) {
+                  return {
+                    ...folder,
+                    files: folder.files.map((file) => {
+                      if (file.id === action.payload.fileId) {
+                        return {
+                          ...file,
+                          ...action.payload.file,
+                        };
+                      }
+                      return file;
+                    }),
+                  };
+                }
+                return folder;
+              }),
+            };
+          }
+          return workspace;
+        }),
+      };
+    case "DELETE_WORKSPACE":
+      return {
+        ...state,
+        workspaces: state.workspaces.filter(
+          (workspace) => workspace.id !== action.payload
+        ),
+      };
+
     default:
       return initalState;
   }
@@ -179,7 +277,21 @@ const AppStateProvider: React.FC<AppStateProviderProps> = ({ children }) => {
     }
   }, [pathname]);
 
-  // useEffect(() => {}, [folderId, workspaceId]);
+  useEffect(() => {
+    if (!folderId || !workspaceId) return;
+    const fetchFiles = async () => {
+      const { error: filesError, data } = await getFiles(folderId);
+      if (filesError) {
+        console.log(filesError);
+      }
+      if (!data) return;
+      dispatch({
+        type: "SET_FILES",
+        payload: { workspaceId, folderId, files: data },
+      });
+    };
+    fetchFiles();
+  }, [folderId, workspaceId]);
 
   useEffect(() => {
     console.log("App State Changed", state);
