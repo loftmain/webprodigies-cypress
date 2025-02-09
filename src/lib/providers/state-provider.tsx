@@ -44,6 +44,13 @@ type Action =
       payload: { file: File; folderId: string; workspaceId: string };
     }
   | {
+      type: "UPDATE_WORKSPACE";
+      payload: {
+        workspace: Partial<appWorkspacesType>;
+        workspaceId: string;
+      };
+    }
+  | {
       type: "UPDATE_FOLDER";
       payload: {
         workspaceId: string;
@@ -171,6 +178,19 @@ const appReducer = (
           return workspace;
         }),
       };
+    case "UPDATE_WORKSPACE":
+      return {
+        ...state,
+        workspaces: state.workspaces.map((workspace) => {
+          if (workspace.id === action.payload.workspaceId) {
+            return {
+              ...workspace,
+              ...action.payload.workspace,
+            };
+          }
+          return workspace;
+        }),
+      };
     case "UPDATE_FOLDER":
       return {
         ...state,
@@ -231,16 +251,17 @@ const appReducer = (
   }
 };
 
-const AppStateContext = createContext<
-  | {
-      state: AppState;
-      dispatch: Dispatch<Action>;
-      workspaceId: string | undefined;
-      folderId: string | undefined;
-      fileId: string | undefined;
-    }
-  | undefined
->(undefined);
+const AppStateContext =
+  createContext<
+    | {
+        state: AppState;
+        dispatch: Dispatch<Action>;
+        workspaceId: string | undefined;
+        folderId: string | undefined;
+        fileId: string | undefined;
+      }
+    | undefined
+  >(undefined);
 
 interface AppStateProviderProps {
   children: React.ReactNode;
