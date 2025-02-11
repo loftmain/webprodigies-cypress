@@ -67,7 +67,15 @@ type Action =
         file: Partial<File>;
       };
     }
-  | { type: "DELETE_WORKSPACE"; payload: string };
+  | { type: "DELETE_WORKSPACE"; payload: string }
+  | {
+      type: "DELETE_FOLDER";
+      payload: { workspaceId: string; folderId: string };
+    }
+  | {
+      type: "DELETE_FILE";
+      payload: { workspaceId: string; folderId: string; fileId: string };
+    };
 
 const initalState: AppState = { workspaces: [] };
 
@@ -245,23 +253,59 @@ const appReducer = (
           (workspace) => workspace.id !== action.payload
         ),
       };
-
+    case "DELETE_FOLDER":
+      return {
+        ...state,
+        workspaces: state.workspaces.map((workspace) => {
+          if (workspace.id === action.payload.workspaceId) {
+            return {
+              ...workspace,
+              folders: workspace.folders.filter(
+                (folder) => folder.id !== action.payload.folderId
+              ),
+            };
+          }
+          return workspace;
+        }),
+      };
+    case "DELETE_FILE":
+      return {
+        ...state,
+        workspaces: state.workspaces.map((workspace) => {
+          if (workspace.id === action.payload.workspaceId) {
+            return {
+              ...workspace,
+              folders: workspace.folders.map((folder) => {
+                if (folder.id === action.payload.folderId) {
+                  return {
+                    ...folder,
+                    files: folder.files.filter(
+                      (file) => file.id !== action.payload.fileId
+                    ),
+                  };
+                }
+                return folder;
+              }),
+            };
+          }
+          return workspace;
+        }),
+      };
     default:
       return initalState;
   }
 };
 
-const AppStateContext =
-  createContext<
-    | {
-        state: AppState;
-        dispatch: Dispatch<Action>;
-        workspaceId: string | undefined;
-        folderId: string | undefined;
-        fileId: string | undefined;
-      }
-    | undefined
-  >(undefined);
+const AppStateContext = createContext<
+  | {
+      state: AppState;
+      dispatch: Dispatch<Action>;
+      workspaceId: string | undefined;
+      folderId: string | undefined;
+      fileId: string | undefined;
+    }
+  | undefined
+>(undefined);
 
 interface AppStateProviderProps {
   children: React.ReactNode;

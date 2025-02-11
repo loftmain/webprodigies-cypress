@@ -216,6 +216,28 @@ export const createFile = async (file: File) => {
   }
 };
 
+export const deleteFile = async (fileId: string) => {
+  if (!fileId) return;
+  try {
+    await db.delete(files).where(eq(files.id, fileId));
+    return { data: null, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: null, error: "Error" };
+  }
+};
+
+export const deleteFolder = async (folderId: string) => {
+  if (!folderId) return;
+  try {
+    await db.delete(folders).where(eq(folders.id, folderId));
+    return { data: null, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: null, error: "Error" };
+  }
+};
+
 export const updateWorkspace = async (
   workspace: Partial<workspace>,
   workspaceId: string
@@ -264,4 +286,39 @@ export const getUsersFromSearch = async (email: string) => {
     .from(users)
     .where(ilike(users.email, `${email}%`));
   return accounts;
+};
+
+export const getFolderDetails = async (folderId: string) => {
+  if (!validate(folderId)) return { data: [], error: "Error" };
+  try {
+    const response = (await db
+      .select()
+      .from(folders)
+      .where(eq(folders.id, folderId))
+      .limit(1)) as Folder[] | [];
+    return { data: response, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: [], error: "Error" };
+  }
+};
+
+export const getFileDetails = async (fileId: string) => {
+  const isValid = validate(fileId);
+  if (!isValid)
+    return {
+      data: [],
+      error: "Error",
+    };
+  try {
+    const response = (await db
+      .select()
+      .from(files)
+      .where(eq(files.id, fileId))
+      .limit(1)) as File[] | [];
+    return { data: response, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: [], error: "Error" };
+  }
 };

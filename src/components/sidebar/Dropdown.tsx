@@ -75,7 +75,11 @@ const Dropdown: React.FC<DropdownProps> = ({
       router.push(`/dashboard/${workspaceId}/${accordionId}`);
     }
     if (type === "file") {
-      router.push(`/dashboard/${workspaceId}/${folderId}/${accordionId}`);
+      router.push(
+        `/dashboard/${workspaceId}/${folderId}/${
+          accordionId.split("folder")[1]
+        }`
+      );
     }
   };
   // add a file
@@ -86,6 +90,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   };
   // blur
   const handleBlur = async () => {
+    if (!isEditing) return;
     setIsEditing(false);
     const fid = id.split("folder");
     if (fid?.length === 1) {

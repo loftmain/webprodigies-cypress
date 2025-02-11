@@ -4,6 +4,13 @@ import { File, Folder, workspace } from "@/lib/supabase/supabase.types";
 import React, { useCallback, useMemo, useState } from "react";
 import "quill/dist/quill.snow.css";
 import { Button } from "../ui/button";
+import {
+  deleteFile,
+  deleteFolder,
+  updateFile,
+  updateFolder,
+  updateWorkspace,
+} from "@/lib/supabase/queries";
 
 interface QuillEditorProps {
   dirDetails: File | Folder | workspace;
@@ -93,18 +100,50 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     }
   }, []);
 
+  // TODO: 폴더의 하위 파일 restore 되도록 기능 개선해보기
   const restoreFileHandler = async () => {
     if (dirType === "file") {
-      //TODO
+      if (!workspaceId || !folderId) return;
+      dispatch({
+        type: "UPDATE_FILE",
+        payload: { workspaceId, folderId, fileId, file: { inTrash: "" } },
+      });
+      await updateFile({ inTrash: "" }, fileId);
+    }
+    if (dirType === "folder") {
+      if (!workspaceId) return;
+      dispatch({
+        type: "UPDATE_FOLDER",
+        payload: { workspaceId, folderId: fileId, folder: { inTrash: "" } },
+      });
+      await updateFolder({ inTrash: "" }, fileId);
     }
   };
 
-  const deleteFileHandler = async () => {};
+  // TODO: 폴더의 하위 파일도 같이 delete 되도록 기능 개선해보기
+  const deleteFileHandler = async () => {
+    if (dirType === "file") {
+      if (!workspaceId || !folderId) return;
+      dispatch({
+        type: "DELETE_FILE",
+        payload: { workspaceId, folderId, fileId },
+      });
+      await deleteFile(fileId);
+    }
+    if (dirType === "folder") {
+      if (!workspaceId) return;
+      dispatch({
+        type: "DELETE_FOLDER",
+        payload: { workspaceId, folderId: fileId },
+      });
+      await deleteFolder(fileId);
+    }
+  };
 
   return (
     <>
       <div className="relative">
-        {true && (
+        {details.inTrash && (
           <article
             className="
         py-2 z-40 bg-[#EB5757] flex md:flex-row flex-col justify-center items-center gap-4 flex-wrap"
@@ -130,6 +169,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
                 Delete
               </Button>
             </div>
+            <span className="text-sm text-white">{details.inTrash}</span>
           </article>
         )}
       </div>
