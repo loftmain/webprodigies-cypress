@@ -1,3 +1,6 @@
+import { Socket, Server as NetServer } from "net";
+import { Server as SocketIOServer } from "socket.io";
+import { NextApiResponse } from "next";
 import { z } from "zod";
 
 // Login, Sign Up 에서 사용하는 Form Schema 구현
@@ -14,3 +17,12 @@ export const CreateWorkspaceFormSchema = z.object({
     .min(1, "Workspace name must be min of 1 character"),
   logo: z.any(), // z.file을 사용할 경우 서버사이드 문제가 일어날 수 있다고 함.
 });
+
+// socket.io provider에 사용되는 type
+export type NextApiResponseServerIo = NextApiResponse & {
+  socket: Socket & {
+    server: NetServer & {
+      io: SocketIOServer;
+    };
+  };
+};

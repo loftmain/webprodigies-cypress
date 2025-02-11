@@ -11,6 +11,7 @@ import {
   updateFolder,
   updateWorkspace,
 } from "@/lib/supabase/queries";
+import { useSocket } from "@/lib/providers/socket-provider";
 
 interface QuillEditorProps {
   dirDetails: File | Folder | workspace;
@@ -42,6 +43,8 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   fileId,
   dirType,
 }) => {
+  const { socket } = useSocket();
+  // 8:48
   const { state, workspaceId, folderId, dispatch } = useAppState();
   const [quill, setQuill] = useState<any>(null);
 

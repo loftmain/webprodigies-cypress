@@ -5,6 +5,8 @@ import { DM_Sans } from "next/font/google";
 import { twMerge } from "tailwind-merge";
 import AppStateProvider from "@/lib/providers/state-provider";
 import { SupabaseUserProvider } from "@/lib/providers/supabase-user-provider";
+import { SocketProvider } from "@/lib/providers/socket-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -25,7 +27,12 @@ export default function RootLayout({
       <body className={twMerge("bg-background", dmSans.className)}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <AppStateProvider>
-            <SupabaseUserProvider>{children}</SupabaseUserProvider>
+            <SupabaseUserProvider>
+              <SocketProvider>
+                {children}
+                <Toaster />
+              </SocketProvider>
+            </SupabaseUserProvider>
           </AppStateProvider>
         </ThemeProvider>
       </body>
