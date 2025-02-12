@@ -41,7 +41,8 @@ const BannerUploadForm: React.FC<BannerUploadFormProps> = ({
     formState: { isSubmitting: isUploading, errors },
   } = useForm<z.infer<typeof UploadBannerFormSchema>>({
     mode: "onChange",
-    resolver: zodResolver(UploadBannerFormSchema),
+    // TODO : File 입력 validate rresolver 해결해보기
+    //resolver: zodResolver(UploadBannerFormSchema),
     defaultValues: { banner: undefined },
   });
 

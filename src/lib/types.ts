@@ -19,9 +19,7 @@ export const CreateWorkspaceFormSchema = z.object({
 });
 
 export const UploadBannerFormSchema = z.object({
-  banner: z
-    .instanceof(FileList)
-    .refine((file) => file?.length == 1, "Banner is requrired."),
+  banner: z.string().min(1, "Banner is required"),
 });
 
 // socket.io provider에 사용되는 type

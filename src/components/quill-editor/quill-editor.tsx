@@ -94,6 +94,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     useState<{ id: string; email: string; avatarUrl: string }[]>(
       dummyCollaborators
     );
+  const [deletingBanner, setDeletingBanner] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const details = useMemo(() => {
@@ -265,6 +266,49 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     }
   };
 
+  const deleteBanner = async () => {
+    if (!fileId || !details || !details.bannerUrl) return;
+
+    try {
+      if (dirType === "workspace") {
+        await supabase.storage.from("file-banners").remove([details.bannerUrl]);
+        dispatch({
+          type: "UPDATE_WORKSPACE",
+          payload: {
+            workspace: { bannerUrl: "" },
+            workspaceId: fileId,
+          },
+        });
+        await updateWorkspace({ bannerUrl: "" }, fileId);
+      } else if (dirType === "folder") {
+        if (!workspaceId) return;
+        await supabase.storage.from("file-banners").remove([details.bannerUrl]);
+        dispatch({
+          type: "UPDATE_FOLDER",
+          payload: {
+            folder: { bannerUrl: "" },
+            folderId: fileId,
+            workspaceId,
+          },
+        });
+        await updateFolder({ bannerUrl: "" }, fileId);
+      } else if (dirType === "file") {
+        if (!workspaceId || !folderId) return;
+        await supabase.storage.from("file-banners").remove([details.bannerUrl]);
+        dispatch({
+          type: "UPDATE_FILE",
+          payload: {
+            file: { bannerUrl: "" },
+            fileId,
+            folderId,
+            workspaceId,
+          },
+        });
+        await updateFile({ bannerUrl: "" }, fileId);
+      }
+    } catch (error) {}
+  };
+
   return (
     <>
       <div className="relative">
@@ -381,10 +425,13 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
             </BannerUpload>
             {details.bannerUrl && (
               <Button
+                onClick={deleteBanner}
                 variant={"ghost"}
                 className="gap-2 hover:bg-background flex items-center justify-center mt-2 text-sm text-muted-foreground w-36 p-2 rounded-md"
               >
-                Remove Banner
+                <span className="whitespace-nowrap font-normal">
+                  Remove Banner
+                </span>
               </Button>
             )}
           </div>
