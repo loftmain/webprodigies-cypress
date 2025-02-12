@@ -14,3 +14,9 @@ export const CreateWorkspaceFormSchema = z.object({
     .min(1, "Workspace name must be min of 1 character"),
   logo: z.any(), // z.file을 사용할 경우 서버사이드 문제가 일어날 수 있다고 함.
 });
+
+export const UploadBannerFormSchema = z.object({
+  banner: z
+    .instanceof(FileList)
+    .refine((file) => file?.length == 1, "Banner is requrired."),
+});

@@ -11,6 +11,19 @@ import {
   updateFolder,
   updateWorkspace,
 } from "@/lib/supabase/queries";
+import { usePathname } from "next/navigation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Badge } from "../ui/badge";
+import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
+import EmojiPicker from "../global/emoji-picker";
+import BannerUpload from "../banner-upload/banner-upload";
 
 interface QuillEditorProps {
   dirDetails: File | Folder | workspace;
@@ -37,13 +50,48 @@ var TOOLBAR_OPTIONS = [
   ["clean"], // remove formatting button
 ];
 
+const dummyCollaborators: { id: string; email: string; avatarUrl: string }[] = [
+  {
+    id: "1",
+    email: "johndoe@example.com",
+    avatarUrl: "https://i.pravatar.cc/300?img=1",
+  },
+  {
+    id: "2",
+    email: "janedoe@example.com",
+    avatarUrl: "https://i.pravatar.cc/300?img=2",
+  },
+  {
+    id: "3",
+    email: "peterparker@example.com",
+    avatarUrl: "https://i.pravatar.cc/300?img=3",
+  },
+  {
+    id: "4",
+    email: "brucewayne@example.com",
+    avatarUrl: "https://i.pravatar.cc/300?img=4",
+  },
+  {
+    id: "5",
+    email: "clarkkent@example.com",
+    avatarUrl: "https://i.pravatar.cc/300?img=5",
+  },
+];
+
 const QuillEditor: React.FC<QuillEditorProps> = ({
   dirDetails,
   fileId,
   dirType,
 }) => {
+  const supabase = createClient();
   const { state, workspaceId, folderId, dispatch } = useAppState();
+  const pathname = usePathname();
   const [quill, setQuill] = useState<any>(null);
+  const [collaborators, setCollaborators] =
+    useState<{ id: string; email: string; avatarUrl: string }[]>(
+      dummyCollaborators
+    );
+  const [saving, setSaving] = useState(false);
 
   const details = useMemo(() => {
     let selectedDir;
@@ -77,6 +125,44 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
       bannerUrl: dirDetails.bannerUrl,
     } as workspace | Folder | File;
   }, [state, workspaceId, folderId]);
+
+  const breadCrumbs = useMemo(() => {
+    if (!pathname || !state.workspaces || !workspaceId) return;
+    const segments = pathname
+      .split("/")
+      .filter((val) => val !== "dashboard" && val);
+    const workspaceDetails = state.workspaces.find(
+      (workspace) => workspace.id === workspaceId
+    );
+    const workspaceBreadCrumb = workspaceDetails
+      ? `${workspaceDetails.iconId} ${workspaceDetails.title}`
+      : "";
+    if (segments.length === 1) {
+      return workspaceBreadCrumb;
+    }
+
+    const folderSegment = segments[1];
+    const folderDetails = workspaceDetails?.folders.find(
+      (folder) => folder.id === folderSegment
+    );
+    const folderBreadCrumb = folderDetails
+      ? `/ ${folderDetails.iconId} ${folderDetails.title}`
+      : "";
+    if (segments.length === 2) {
+      return `${workspaceBreadCrumb} ${folderBreadCrumb}`;
+    }
+
+    const fileSegment = segments[2];
+    const fileDetails = folderDetails?.files.find(
+      (file) => file.id === fileSegment
+    );
+    const fileBreadCrumb = fileDetails
+      ? `/ ${fileDetails.iconId} ${fileDetails.title}`
+      : "";
+    if (segments.length === 3) {
+      return `${workspaceBreadCrumb} ${folderBreadCrumb} ${fileBreadCrumb}`;
+    }
+  }, [state, pathname, workspaceId]);
 
   //
   const wrapperRef = useCallback((wrapper: HTMLDivElement | null) => {
@@ -140,6 +226,42 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     }
   };
 
+  const iconOnChange = async (icon: string) => {
+    if (!fileId) return;
+    if (dirType === "workspace") {
+      dispatch({
+        type: "UPDATE_WORKSPACE",
+        payload: { workspace: { iconId: icon }, workspaceId: fileId },
+      });
+      await updateWorkspace({ iconId: icon }, fileId);
+    }
+    if (dirType === "folder") {
+      if (!workspaceId) return;
+      dispatch({
+        type: "UPDATE_FOLDER",
+        payload: {
+          folder: { iconId: icon },
+          workspaceId: workspaceId,
+          folderId: fileId,
+        },
+      });
+      await updateFolder({ iconId: icon }, fileId);
+    }
+    if (dirType === "file") {
+      if (!workspaceId || !folderId) return;
+      dispatch({
+        type: "UPDATE_FILE",
+        payload: {
+          file: { iconId: icon },
+          fileId,
+          folderId: folderId,
+          workspaceId: workspaceId,
+        },
+      });
+      await updateFile({ iconId: icon }, fileId);
+    }
+  };
+
   return (
     <>
       <div className="relative">
@@ -172,8 +294,98 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
             <span className="text-sm text-white">{details.inTrash}</span>
           </article>
         )}
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-between justify-center sm:items-center sm:p-2 p-8">
+          <div>{breadCrumbs}</div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center h-10">
+              {collaborators?.map((collaborator) => (
+                <TooltipProvider key={collaborator.id}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Avatar className="-ml-3 bg-background border-2 flex items-center justify-center border-white h-8 w-8 rounded-full">
+                        <AvatarImage
+                          src={
+                            collaborator.avatarUrl ? collaborator.avatarUrl : ""
+                          }
+                          className="rounded-full"
+                        />
+                        <AvatarFallback>
+                          {collaborator.email.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </TooltipTrigger>
+                    <TooltipContent>User name</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ))}
+            </div>
+            {saving ? (
+              <Badge
+                variant={"secondary"}
+                className="bg-orange-600 top-4 text-white right-4 z-50"
+              >
+                Saving...
+              </Badge>
+            ) : (
+              <Badge
+                variant={"secondary"}
+                className="bg-emerald-600 top-4 text-white right-4 z-50"
+              >
+                Saved
+              </Badge>
+            )}
+          </div>
+        </div>
       </div>
+      {details.bannerUrl && (
+        <>
+          <div className="relative w-full h-[200px]">
+            <Image
+              src={
+                supabase.storage
+                  .from("file-banners")
+                  .getPublicUrl(details.bannerUrl).data.publicUrl
+                // "/BannerImage.png"
+              }
+              fill
+              className="w-full md:h-48 h-20 object-cover"
+              alt="Banner Image"
+            />
+          </div>
+        </>
+      )}
+
       <div className="flex justify-center items-center flex-col mt-2 relative">
+        <div className="w-full self-center max-w-[800px] flex flex-col px-7 lg:my-8">
+          <div className="text-[80px]">
+            <EmojiPicker getValue={iconOnChange}>
+              <div
+                className="w-[100px] cursor-pointer transition-colors h-[100px] flex items-center
+                justify-center hover:bg-muted rounded-xl"
+              >
+                {details.iconId}
+              </div>
+            </EmojiPicker>
+          </div>
+          <div className="flex">
+            <BannerUpload
+              details={details}
+              id={fileId}
+              dirType={dirType}
+              className="mt-2 text-sm text-muted-foreground p-2 hover:text-card-foreground transition-all rounded-md"
+            >
+              {details.bannerUrl ? "Update Banner" : "Add Banner"}
+            </BannerUpload>
+            {details.bannerUrl && (
+              <Button
+                variant={"ghost"}
+                className="gap-2 hover:bg-background flex items-center justify-center mt-2 text-sm text-muted-foreground w-36 p-2 rounded-md"
+              >
+                Remove Banner
+              </Button>
+            )}
+          </div>
+        </div>
         <div id="container" className="max-w-[800]" ref={wrapperRef}></div>
       </div>
     </>

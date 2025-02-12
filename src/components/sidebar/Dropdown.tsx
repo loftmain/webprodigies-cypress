@@ -76,7 +76,7 @@ const Dropdown: React.FC<DropdownProps> = ({
     }
     if (type === "file") {
       router.push(
-        `/dashboard/${workspaceId}/${folderId}/${
+        `/dashboard/${workspaceId}/${accordionId.split("folder")[0]}/${
           accordionId.split("folder")[1]
         }`
       );
