@@ -24,6 +24,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import EmojiPicker from "../global/emoji-picker";
 import BannerUpload from "../banner-upload/banner-upload";
+import { useSocket } from "@/lib/providers/socket-provider";
 
 interface QuillEditorProps {
   dirDetails: File | Folder | workspace;
@@ -84,6 +85,8 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   dirType,
 }) => {
   const supabase = createClient();
+  const { socket } = useSocket();
+  // 8:48
   const { state, workspaceId, folderId, dispatch } = useAppState();
   const pathname = usePathname();
   const [quill, setQuill] = useState<any>(null);
