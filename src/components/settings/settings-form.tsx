@@ -13,6 +13,7 @@ import { Separator } from "@radix-ui/react-select";
 import {
   addCollaborators,
   deleteWorkspace,
+  getCollaborators,
   removeCollaborators,
   updateWorkspace,
 } from "@/lib/supabase/queries";
@@ -124,6 +125,18 @@ const SettingsForm = () => {
     if (showingWorkspace) setWorkspaceDetails(showingWorkspace);
   }, [workspaceId, state]);
 
+  useEffect(() => {
+    if (!workspaceId) return;
+    const fetchCollaborators = async () => {
+      const response = await getCollaborators(workspaceId);
+      if (response.length) {
+        setPermissions("shared");
+        setCollaborators(response);
+      }
+    };
+    fetchCollaborators();
+  }, [workspaceId]);
+
   return (
     <div className="flex gap-4 flex-col">
       <p className="flex items-center gap-2 mt-6">
@@ -169,7 +182,7 @@ const SettingsForm = () => {
           onValueChange={(val) => {
             setPermissions(val);
           }}
-          defaultValue={permissions}
+          value={permissions}
         >
           <SelectTrigger className="w-full h-26 -mt-3">
             <SelectValue />

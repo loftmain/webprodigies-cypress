@@ -6,7 +6,6 @@ import db from "./db";
 import { File, Folder, Subscription, User, workspace } from "./supabase.types";
 import { and, eq, ilike, notExists } from "drizzle-orm";
 import { collaborators } from "./schema";
-import { revalidatePath } from "next/cache";
 
 export const getUserSubscrptionStatus = async (userId: string) => {
   try {
@@ -325,4 +324,22 @@ export const getFileDetails = async (fileId: string) => {
     console.log(error);
     return { data: [], error: "Error" };
   }
+};
+
+export const getCollaborators = async (workspaceId: string) => {
+  const response = await db
+    .select()
+    .from(collaborators)
+    .where(eq(collaborators.workspaceId, workspaceId));
+  if (!response.length) return [];
+  const userInfomation: Promise<User | undefined>[] = response.map(
+    async (user) => {
+      const exists = await db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.id, user.userId),
+      });
+      return exists;
+    }
+  );
+  const resolvedUsers = await Promise.all(userInfomation);
+  return resolvedUsers.filter(Boolean) as User[];
 };
