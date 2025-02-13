@@ -25,6 +25,8 @@ import { createClient } from "@/lib/supabase/client";
 import EmojiPicker from "../global/emoji-picker";
 import BannerUpload from "../banner-upload/banner-upload";
 import { useSocket } from "@/lib/providers/socket-provider";
+import { XCircleIcon } from "lucide-react";
+import { QuillOptions } from "quill";
 
 interface QuillEditorProps {
   dirDetails: File | Folder | workspace;
@@ -50,6 +52,8 @@ var TOOLBAR_OPTIONS = [
 
   ["clean"], // remove formatting button
 ];
+
+type QuillType = typeof import("quill").default;
 
 const dummyCollaborators: { id: string; email: string; avatarUrl: string }[] = [
   {
@@ -169,6 +173,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   }, [state, pathname, workspaceId]);
 
   //
+  /*
   const wrapperRef = useCallback((wrapper: HTMLDivElement | null) => {
     if (typeof window !== "undefined") {
       if (wrapper === null) return;
@@ -188,6 +193,39 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         setQuill(q);
       });
     }
+  }, []);
+  */
+  const wrapperRef = useCallback((wrapper: HTMLDivElement | null) => {
+    if (typeof window === "undefined" || !wrapper) return;
+
+    const initializeQuill = async () => {
+      try {
+        wrapper.innerHTML = "";
+        const editor = document.createElement("div");
+        wrapper.append(editor);
+
+        // Dynamically import Quill
+        const { default: Quill }: { default: QuillType } = await import(
+          "quill"
+        );
+        const options: QuillOptions = {
+          theme: "snow",
+          modules: {
+            toolbar: TOOLBAR_OPTIONS,
+            // WIP cursors
+          },
+        };
+
+        const quillInstance = new Quill(editor, options);
+        setQuill(quillInstance);
+      } catch (error) {
+        console.log("Quill 초기화 중 오류 발생: ", error);
+      }
+    };
+    // IIFE로 async 함수 실행
+    (async () => {
+      await initializeQuill();
+    })();
   }, []);
 
   // TODO: 폴더의 하위 파일 restore 되도록 기능 개선해보기
@@ -267,11 +305,13 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   };
 
   const deleteBanner = async () => {
-    if (!fileId || !details || !details.bannerUrl) return;
-
+    if (!fileId) return;
+    setDeletingBanner(true);
     try {
       if (dirType === "workspace") {
-        await supabase.storage.from("file-banners").remove([details.bannerUrl]);
+        await supabase.storage
+          .from("file-banners")
+          .remove([`banner-${fileId}`]);
         dispatch({
           type: "UPDATE_WORKSPACE",
           payload: {
@@ -282,7 +322,9 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         await updateWorkspace({ bannerUrl: "" }, fileId);
       } else if (dirType === "folder") {
         if (!workspaceId) return;
-        await supabase.storage.from("file-banners").remove([details.bannerUrl]);
+        await supabase.storage
+          .from("file-banners")
+          .remove([`banner-${fileId}`]);
         dispatch({
           type: "UPDATE_FOLDER",
           payload: {
@@ -294,7 +336,9 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         await updateFolder({ bannerUrl: "" }, fileId);
       } else if (dirType === "file") {
         if (!workspaceId || !folderId) return;
-        await supabase.storage.from("file-banners").remove([details.bannerUrl]);
+        await supabase.storage
+          .from("file-banners")
+          .remove([`banner-${fileId}`]);
         dispatch({
           type: "UPDATE_FILE",
           payload: {
@@ -306,6 +350,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         });
         await updateFile({ bannerUrl: "" }, fileId);
       }
+      setDeletingBanner(false);
     } catch (error) {}
   };
 
@@ -425,16 +470,24 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
             </BannerUpload>
             {details.bannerUrl && (
               <Button
+                disabled={deletingBanner}
                 onClick={deleteBanner}
                 variant={"ghost"}
                 className="gap-2 hover:bg-background flex items-center justify-center mt-2 text-sm text-muted-foreground w-36 p-2 rounded-md"
               >
+                <XCircleIcon size={16} />
                 <span className="whitespace-nowrap font-normal">
                   Remove Banner
                 </span>
               </Button>
             )}
           </div>
+          <span className="text-muted-foreground text-3xl font-bold h-9">
+            {details.title}
+          </span>
+          <span className="text-muted-foreground text-sm">
+            {dirType.toUpperCase()}
+          </span>
         </div>
         <div id="container" className="max-w-[800]" ref={wrapperRef}></div>
       </div>

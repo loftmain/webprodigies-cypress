@@ -30,6 +30,7 @@
     "@radix-ui/react-tooltip": "^1.1.7",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.48.1",
+    "@types/quill": "^2.0.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
