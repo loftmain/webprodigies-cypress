@@ -31,6 +31,15 @@ import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Alert, AlertDescription } from "../ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 const SettingsForm = () => {
   const { toast } = useToast();
@@ -113,6 +122,22 @@ const SettingsForm = () => {
   };
 
   //onClick
+  const onClickAlertConfirm = async () => {
+    if (!workspaceId) return;
+    if (collaborators.length > 0) {
+      await removeCollaborators(collaborators, workspaceId);
+    }
+    setPermissions("private");
+    setOpenAlertMessage(false);
+  };
+
+  const onPermissionsChange = (val: string) => {
+    if (val === "private") {
+      setOpenAlertMessage(true);
+    } else {
+      setPermissions(val);
+    }
+  };
   //fetching avator details
   //get Workspace details
   //get all the collaborators
@@ -178,12 +203,7 @@ const SettingsForm = () => {
         <Label htmlFor="permissions" className="text-sm text-muted-foreground">
           Permissions
         </Label>
-        <Select
-          onValueChange={(val) => {
-            setPermissions(val);
-          }}
-          value={permissions}
-        >
+        <Select onValueChange={onPermissionsChange} value={permissions}>
           <SelectTrigger className="w-full h-26 -mt-3">
             <SelectValue />
           </SelectTrigger>
@@ -213,7 +233,6 @@ const SettingsForm = () => {
             </SelectGroup>
           </SelectContent>
         </Select>
-
         {permissions === "shared" && (
           <div>
             <CollaboratorSearch
@@ -265,30 +284,49 @@ const SettingsForm = () => {
             </div>
           </div>
         )}
+        <Alert variant={"destructive"}>
+          <AlertDescription>
+            Warning! deleting you workspace will permanantly delete all data
+            related to this workspace.
+          </AlertDescription>
+          <Button
+            type="submit"
+            size={"sm"}
+            variant={"destructive"}
+            className="mt-4 text-sm bg-destructive/40 border-2 border-destructive"
+            onClick={async () => {
+              if (!workspaceId) return;
+              await deleteWorkspace(workspaceId);
+              toast({
+                title: "Successfully deleted your workspace",
+              });
+              dispatch({ type: "DELETE_WORKSPACE", payload: workspaceId });
+              router.replace("/dashboard");
+            }}
+          >
+            Delete Workspace
+          </Button>
+        </Alert>
       </>
-      <Alert variant={"destructive"}>
-        <AlertDescription>
-          Warning! deleting you workspace will permanantly delete all data
-          related to this workspace.
-        </AlertDescription>
-        <Button
-          type="submit"
-          size={"sm"}
-          variant={"destructive"}
-          className="mt-4 text-sm bg-destructive/40 border-2 border-destructive"
-          onClick={async () => {
-            if (!workspaceId) return;
-            await deleteWorkspace(workspaceId);
-            toast({
-              title: "Successfully deleted your workspace",
-            });
-            dispatch({ type: "DELETE_WORKSPACE", payload: workspaceId });
-            router.replace("/dashboard");
-          }}
-        >
-          Delete Workspace
-        </Button>
-      </Alert>
+      <AlertDialog open={openAlertMessage}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDescription>
+              Changing a Shared workspace to a Private workspace will remove all
+              collaborators permanantly.
+            </AlertDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setOpenAlertMessage(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => onClickAlertConfirm()}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
