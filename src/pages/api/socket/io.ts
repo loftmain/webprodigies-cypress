@@ -17,6 +17,7 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
       path,
       addTrailingSlash: false,
     });
+    // listener and connection
     io.on("connection", (s) => {
       s.on("create-room", (fileId) => {
         s.join(fileId);

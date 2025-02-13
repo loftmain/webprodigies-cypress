@@ -43,8 +43,8 @@ export const files = pgTable(
     data: text(),
     inTrash: text("in_trash"),
     bannerUrl: text("banner_url"),
-    workspaceId: uuid("workspace_id"),
-    folderId: uuid("folder_id"),
+    workspaceId: uuid("workspace_id").notNull(),
+    folderId: uuid("folder_id").notNull(),
   },
   (table) => [
     foreignKey({
@@ -72,7 +72,7 @@ export const folders = pgTable(
     data: text(),
     inTrash: text("in_trash"),
     bannerUrl: text("banner_url"),
-    workspaceId: uuid("workspace_id"),
+    workspaceId: uuid("workspace_id").notNull(),
   },
   (table) => [
     foreignKey({

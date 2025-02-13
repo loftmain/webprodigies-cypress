@@ -18,14 +18,14 @@ export const useSocket = () => {
 };
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  const [socket, useSocket] = useState(null);
+  const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const socketInstance = new (ClientIO as any)(
       process.env.NEXT_PUBLIC_SITE_URL!,
       {
-        path: "/api/socket/id",
+        path: "/api/socket/io",
         addTrailingSlash: false,
       }
     );
@@ -37,6 +37,9 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       setIsConnected(false);
     });
 
+    setSocket(socketInstance);
+
+    // cleanup
     return () => {
       socketInstance.disconnect();
     };

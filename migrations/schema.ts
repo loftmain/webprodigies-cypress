@@ -32,8 +32,8 @@ export const files = pgTable("files", {
 	data: text(),
 	inTrash: text("in_trash"),
 	bannerUrl: text("banner_url"),
-	workspaceId: uuid("workspace_id"),
-	folderId: uuid("folder_id"),
+	workspaceId: uuid("workspace_id").notNull(),
+	folderId: uuid("folder_id").notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.folderId],
@@ -55,7 +55,7 @@ export const folders = pgTable("folders", {
 	data: text(),
 	inTrash: text("in_trash"),
 	bannerUrl: text("banner_url"),
-	workspaceId: uuid("workspace_id"),
+	workspaceId: uuid("workspace_id").notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.workspaceId],
@@ -101,8 +101,8 @@ export const users = pgTable("users", {
 			foreignColumns: [table.id],
 			name: "users_id_fkey"
 		}),
-	pgPolicy("Everyone Can view user data.", { as: "permissive", for: "select", to: ["public"], using: sql`true` }),
-	pgPolicy("Can update own user data.", { as: "permissive", for: "update", to: ["public"] }),
+	pgPolicy("Can update own user data.", { as: "permissive", for: "update", to: ["public"], using: sql`(( SELECT auth.uid() AS uid) = id)` }),
+	pgPolicy("Everyone Can view user data.", { as: "permissive", for: "select", to: ["public"] }),
 ]);
 
 export const products = pgTable("products", {
