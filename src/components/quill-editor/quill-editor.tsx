@@ -13,6 +13,7 @@ import { Button } from "../ui/button";
 import {
   deleteFile,
   deleteFolder,
+  findUser,
   getFileDetails,
   getFolderDetails,
   getWorkspaceDetails,
@@ -106,12 +107,12 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   const router = useRouter();
   const pathname = usePathname();
   const [quill, setQuill] = useState<any>(null);
-  const [collaborators, setCollaborators] =
-    useState<{ id: string; email: string; avatarUrl: string }[]>(
-      dummyCollaborators
-    );
+  const [collaborators, setCollaborators] = useState<
+    { id: string; email: string; avatarUrl: string }[]
+  >([]);
   const [deletingBanner, setDeletingBanner] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [localCursors, setLocalCursors] = useState<any>([]);
 
   const details = useMemo(() => {
     let selectedDir;
@@ -220,11 +221,15 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         const { default: Quill }: { default: QuillType } = await import(
           "quill"
         );
+        const QuillCursors = (await import("quill-cursors")).default;
+        Quill.register("modules/cursors", QuillCursors);
         const options: QuillOptions = {
           theme: "snow",
           modules: {
             toolbar: TOOLBAR_OPTIONS,
-            // WIP cursors
+            cursors: {
+              transformOnTextChange: true,
+            },
           },
         };
 
@@ -440,6 +445,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   useEffect(() => {
     if (socket === null || quill === null || !fileId) return;
     socket.emit("create-room", fileId);
+    socket.emit("send-change-text", fileId);
   }, [socket, quill, dirType]);
 
   //Send quill changes to all clients
@@ -450,6 +456,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     const quillHandler = (delta: any, oldDelta: any, source: any) => {
       if (source !== "user") return;
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
       setSaving(true);
       const contents = quill.getContents();
       const quillLength = quill.getLength();
@@ -491,7 +498,10 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         setSaving(false);
       }, 850);
       socket.emit("send-changes", delta, fileId);
+      console.log("send-changes : quill-editor");
     };
+    console.log("Text-change : quill-editor");
+
     quill.on("text-change", quillHandler); //listen to the change
     //WIP cursors selection handler
 
@@ -500,7 +510,66 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
       //WIP cursors
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  }, [quill, socket, fileId, user, details, folderId, workspaceId]);
+  }, [quill, socket, fileId, user, details, folderId, workspaceId, dispatch]);
+
+  useEffect(() => {
+    if (quill === null || socket === null) return;
+    const socketHandler = (deltas: any, id: string) => {
+      if (id === fileId) {
+        quill.updateContents(deltas);
+      }
+    };
+    socket.on("receive-changes", socketHandler);
+    return () => {
+      socket.off("receive-changes", socketHandler);
+    };
+  }, [quill, socket, fileId]);
+
+  useEffect(() => {
+    if (!fileId || quill === null) return;
+    const room = supabase.channel(fileId);
+    const subscription = room
+      .on("presence", { event: "sync" }, () => {
+        const newState = room.presenceState();
+        const newCollaborators = Object.values(newState).flat() as any;
+        setCollaborators(newCollaborators);
+        if (user) {
+          const allCursors: any = [];
+          newCollaborators.forEach(
+            (collaborator: { id: string; email: string; avatar: string }) => {
+              if (collaborator.id !== user.id) {
+                const userCursor = quill.getModule("cursors");
+                userCursor.createCursor(
+                  collaborator.id,
+                  collaborator.email.split("@")[0],
+                  `#${Math.random().toString(16).slice(2, 8)}`
+                );
+                allCursors.push(userCursor);
+              }
+            }
+          );
+          setLocalCursors(allCursors);
+        }
+      })
+      .subscribe(async (status) => {
+        if (status !== "SUBSCRIBED" || !user) return;
+        const response = await findUser(user.id);
+        if (!response) return;
+
+        room.track({
+          id: user.id,
+          email: user.email?.split("@")[0],
+          avatarUrl: response.avatarUrl
+            ? supabase.storage.from("avatars").getPublicUrl(response.avatarUrl)
+                .data.publicUrl
+            : "",
+        });
+      });
+
+    return () => {
+      supabase.removeChannel(room);
+    };
+  }, [fileId, quill, supabase, user]);
 
   return (
     <>
@@ -554,7 +623,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
                         </AvatarFallback>
                       </Avatar>
                     </TooltipTrigger>
-                    <TooltipContent>User name</TooltipContent>
+                    <TooltipContent>{collaborator.email}</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               ))}

@@ -65,16 +65,16 @@ const SettingsForm = () => {
     //   return;
     // }
 
-    await addCollaborators(collaborators, workspaceId);
+    await addCollaborators([profile], workspaceId);
     setCollaborators([...collaborators, profile]);
     // to refresh our workspace categories
-    router.refresh();
+    //router.refresh();
   };
   //remove collaborators
   const removeCollaborator = async (profile: User) => {
     if (!workspaceId) return;
     if (collaborators.length === 1) {
-      setPermissions("Private");
+      setPermissions("private");
     }
     await removeCollaborators([profile], workspaceId);
     setCollaborators(
