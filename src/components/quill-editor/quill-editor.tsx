@@ -373,8 +373,8 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
 
   useEffect(() => {
     if (!fileId) return;
-    let selectedDir;
     const fetchInformation = async () => {
+      let selectedDir;
       if (dirType === "file") {
         const { data: selectedDir, error } = await getFileDetails(fileId);
         if (error || !selectedDir) {
@@ -439,14 +439,13 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
       }
     };
     fetchInformation();
-  }, [fileId, workspaceId, quill, dirType]);
+  }, [quill, dirType, fileId, workspaceId]);
 
   //rooms
   useEffect(() => {
     if (socket === null || quill === null || !fileId) return;
     socket.emit("create-room", fileId);
-    socket.emit("send-change-text", fileId);
-  }, [socket, quill, dirType]);
+  }, [socket, quill, fileId]);
 
   //Send quill changes to all clients
   useEffect(() => {
@@ -485,22 +484,23 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
             await updateFolder({ data: JSON.stringify(contents) }, fileId);
           }
           if (dirType === "file") {
+            if (!workspaceId || !folderId) return;
             dispatch({
-              type: "UPDATE_WORKSPACE",
+              type: "UPDATE_FILE",
               payload: {
-                workspace: { data: JSON.stringify(contents) },
-                workspaceId: fileId,
+                file: { data: JSON.stringify(contents) },
+                fileId,
+                folderId,
+                workspaceId,
               },
             });
-            await updateWorkspace({ data: JSON.stringify(contents) }, fileId);
+            await updateFile({ data: JSON.stringify(contents) }, fileId);
           }
         }
         setSaving(false);
       }, 850);
       socket.emit("send-changes", delta, fileId);
-      console.log("send-changes : quill-editor");
     };
-    console.log("Text-change : quill-editor");
 
     quill.on("text-change", quillHandler); //listen to the change
     //WIP cursors selection handler
