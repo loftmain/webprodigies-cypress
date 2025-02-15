@@ -38,6 +38,7 @@ import { useSocket } from "@/lib/providers/socket-provider";
 import { XCircleIcon } from "lucide-react";
 import { QuillOptions } from "quill";
 import { useSupabaseUser } from "@/lib/providers/supabase-user-provider";
+import { cursorTo } from "readline";
 
 interface QuillEditorProps {
   dirDetails: File | Folder | workspace;
@@ -441,6 +442,25 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     fetchInformation();
   }, [quill, dirType, fileId, workspaceId]);
 
+  useEffect(() => {
+    if (quill === null || socket === null || !fileId || !localCursors.length)
+      return;
+    const socketHandler = (range: any, roomId: string, cursorId: string) => {
+      if (roomId === fileId) {
+        const cursorToMove = localCursors.find(
+          (c: any) => c.cursors()?.[0].id === cursorId
+        );
+        if (cursorToMove) {
+          cursorToMove.moveCursor(cursorId, range);
+        }
+      }
+    };
+    socket.on("receive-cursor-move", socketHandler);
+    return () => {
+      socket.off("receive-cursor-move", socketHandler);
+    };
+  }, [quill, socket, fileId, localCursors]);
+
   //rooms
   useEffect(() => {
     if (socket === null || quill === null || !fileId) return;
@@ -451,7 +471,13 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   useEffect(() => {
     if (quill === null || socket === null || !fileId || !user) return;
     //WIP cursors update
-    const selectionChangeHandler = () => {};
+    const selectionChangeHandler = (cursorId: string) => {
+      return (range: any, oldRange: any, source: any) => {
+        if (source === "user" && cursorId) {
+          socket.emit("send-cursor-move", range, fileId, cursorId);
+        }
+      };
+    };
     const quillHandler = (delta: any, oldDelta: any, source: any) => {
       if (source !== "user") return;
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -503,11 +529,11 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     };
 
     quill.on("text-change", quillHandler); //listen to the change
-    //WIP cursors selection handler
+    quill.on("selection-change", selectionChangeHandler(user.id));
 
     return () => {
       quill.off("text-change", quillHandler);
-      //WIP cursors
+      quill.off("selection-change", selectionChangeHandler(user.id));
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
   }, [quill, socket, fileId, user, details, folderId, workspaceId, dispatch]);
