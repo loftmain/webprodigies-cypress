@@ -5,7 +5,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { Suspense, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Logo from "../../../../public/cypresslogo.svg";
@@ -71,7 +71,7 @@ const Signup = () => {
 
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async ({ email, password }: z.infer<typeof FormSchema>) => {
-    const { error, data } = await actionSignUpUser({ email, password });
+    const { error } = await actionSignUpUser({ email, password });
     if (error) {
       setSubmitError(error.message);
       form.reset();

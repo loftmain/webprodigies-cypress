@@ -5,7 +5,9 @@ import { getFileDetails } from "@/lib/supabase/queries";
 import { redirect } from "next/navigation";
 import React from "react";
 
-const FilePage = async ({ params }: { params: { fileId: string } }) => {
+type Params = Promise<{ fileId: string }>;
+
+const FilePage = async ({ params }: { params: Params }) => {
   const { fileId } = await params;
   const { data, error } = await getFileDetails(fileId);
   if (error || !data.length) redirect("/dashboard");

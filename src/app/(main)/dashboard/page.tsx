@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/server";
 import DashboardSetup from "@/components/dashboard-setup/dashboard-setup";
 
 const DashboardPage = async () => {
-  //const supabase = createServerComponentClient({ cookies });
   const supabase = await createClient();
 
   const {

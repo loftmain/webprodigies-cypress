@@ -5,7 +5,9 @@ import { getFolderDetails } from "@/lib/supabase/queries";
 import { redirect } from "next/navigation";
 import React from "react";
 
-const FolderPage = async ({ params }: { params: { folderId: string } }) => {
+type Params = Promise<{ folderId: string }>;
+
+const FolderPage = async ({ params }: { params: Params }) => {
   const { folderId } = await params;
   const { data, error } = await getFolderDetails(folderId);
   if (error || !data.length) redirect("/dashboard");

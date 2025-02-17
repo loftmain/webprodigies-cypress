@@ -12,7 +12,13 @@ interface EmojiPickerProps {
 const EmojiPicker: React.FC<EmojiPickerProps> = ({ children, getValue }) => {
   const route = useRouter();
   // dynamic import는 오류 발생으로 사용 불가한거같음.
-  const Picker = dynamic(() => import("emoji-picker-react"), { ssr: false });
+  const Picker = dynamic(
+    () =>
+      import("emoji-picker-react") as Promise<{
+        default: React.ComponentType<any>;
+      }>,
+    { ssr: false }
+  );
   const onClick = (selectedEmoji: any) => {
     if (getValue) getValue(selectedEmoji.emoji);
   };
