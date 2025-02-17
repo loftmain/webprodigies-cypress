@@ -149,6 +149,22 @@ export const getWorkspaceDetails = async (workspaceId: string) => {
   }
 };
 
+export const getUsersDetails = async (id: string) => {
+  const isValid = validate(id);
+  if (!isValid) return { data: [], error: "Error" };
+  try {
+    const response = (await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1)) as User[] | [];
+    return { data: response, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: [], error: "Error" };
+  }
+};
+
 export const getFiles = async (folderId: string) => {
   const isValid = validate(folderId);
   if (!isValid) return { data: null, error: "Error" };
@@ -275,6 +291,16 @@ export const updateFolder = async (
 export const updateFile = async (file: Partial<File>, fileId: string) => {
   try {
     await db.update(files).set(file).where(eq(files.id, fileId));
+    return { data: null, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: null, error: "Error" };
+  }
+};
+
+export const updateUser = async (user: Partial<User>, id: string) => {
+  try {
+    await db.update(users).set(user).where(eq(users.id, id));
     return { data: null, error: null };
   } catch (error) {
     console.log(error);

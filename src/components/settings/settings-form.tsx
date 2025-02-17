@@ -4,7 +4,16 @@ import { useAppState } from "@/lib/providers/state-provider";
 import { useSupabaseUser } from "@/lib/providers/supabase-user-provider";
 import { createClient } from "@/lib/supabase/client";
 import { User, workspace } from "@/lib/supabase/supabase.types";
-import { Briefcase, Lock, Plus, Share } from "lucide-react";
+import {
+  Briefcase,
+  CreditCard,
+  ExternalLink,
+  Lock,
+  LogOut,
+  Plus,
+  Share,
+  User as UserIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { Label } from "../ui/label";
@@ -14,7 +23,9 @@ import {
   addCollaborators,
   deleteWorkspace,
   getCollaborators,
+  getUsersDetails,
   removeCollaborators,
+  updateUser,
   updateWorkspace,
 } from "@/lib/supabase/queries";
 import { v4 } from "uuid";
@@ -40,20 +51,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../ui/alert-dialog";
+import CypressProfileIcon from "../icons/cypressProfileIcon";
+import LogoutButton from "../global/logout-button";
+import Link from "next/link";
+import { useSubscriptionModal } from "@/lib/providers/subscription-modal-provider";
 
 const SettingsForm = () => {
   const { toast } = useToast();
-  const { user } = useSupabaseUser();
+  const { user, subscription } = useSupabaseUser();
+  const { open, setOpen } = useSubscriptionModal();
   const router = useRouter();
   const supabase = createClient();
   const { state, workspaceId, dispatch } = useAppState();
   const [permissions, setPermissions] = useState("private");
+  const [userDetail, setUserDetail] = useState<User>();
   const [collaborators, setCollaborators] = useState<User[] | []>([]);
   const [openAlertMessage, setOpenAlertMessage] = useState(false);
   const [workspaceDetails, setWorkspaceDetails] = useState<workspace>();
   const titleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
   const [uploadProfilePic, setUploadProfilePic] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
   //WIP PAYMENT PORTAL
 
   //addcollaborators
@@ -121,6 +139,25 @@ const SettingsForm = () => {
     }
   };
 
+  const onChangeProfilePicture = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!userDetail) return;
+    const id = userDetail.id;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const uuid = v4();
+    setUploadingProfilePic(true);
+    const { data, error } = await supabase.storage
+      .from("avatars")
+      .upload(`avatar.${uuid}`, file, { cacheControl: "3600", upsert: true });
+
+    if (!error) {
+      await updateUser({ avatarUrl: data.path }, id);
+      setUploadingProfilePic(false);
+    }
+  };
+
   //onClick
   const onClickAlertConfirm = async () => {
     if (!workspaceId) return;
@@ -162,6 +199,20 @@ const SettingsForm = () => {
     fetchCollaborators();
   }, [workspaceId]);
 
+  useEffect(() => {
+    if (!user) return;
+    const fetchUserDetail = async () => {
+      const response = await getUsersDetails(user.id);
+      if (response.data.length) {
+        response.data[0].avatarUrl = response.data[0].avatarUrl
+          ? response.data[0].avatarUrl
+          : "";
+        setUserDetail(response.data[0]);
+      }
+    };
+    fetchUserDetail();
+  }, [user]);
+
   return (
     <div className="flex gap-4 flex-col">
       <p className="flex items-center gap-2 mt-6">
@@ -195,9 +246,14 @@ const SettingsForm = () => {
           placeholder="Workspace Logo"
           onChange={onChangeWorkspaceLogo}
           // WIP SUBSCRIPTION
-          disabled={uploadingLogo}
+          disabled={uploadingLogo || subscription?.status !== "active"}
         />
-        {/* WIP subscription */}
+        {/* subscription */}
+        {subscription?.status !== "active" && (
+          <small className="text-muted-foreground">
+            To customize your workspace, you nedd to be on a Pro Plan
+          </small>
+        )}
       </div>
       <>
         <Label htmlFor="permissions" className="text-sm text-muted-foreground">
@@ -307,6 +363,93 @@ const SettingsForm = () => {
             Delete Workspace
           </Button>
         </Alert>
+        <p className="flex items-center gap-2 mt-6">
+          <UserIcon size={20} /> Profile
+        </p>
+        <Separator />
+        <div className="flex items-center">
+          <Avatar>
+            <AvatarImage
+              src={
+                userDetail?.avatarUrl
+                  ? supabase.storage
+                      .from("avatars")
+                      .getPublicUrl(userDetail?.avatarUrl).data.publicUrl
+                  : ""
+              }
+            />
+            <AvatarFallback>
+              <CypressProfileIcon />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col ml-6">
+            <small className="text-muted-foreground cursor-not-allowed">
+              {userDetail?.email ? userDetail?.email : ""}
+            </small>
+            <Label
+              htmlFor="profilePicture"
+              className="text-sm text-muted-foreground"
+            >
+              Profile Picture
+            </Label>
+            <Input
+              name="profilePicture"
+              type="file"
+              accept="image/*"
+              placeholder="Profile Picture"
+              onChange={onChangeProfilePicture}
+              disabled={uploadingProfilePic}
+            />
+          </div>
+        </div>
+        <LogoutButton>
+          <div className="flex items-center">
+            <LogOut />
+          </div>
+        </LogoutButton>
+        <p className="flex items-center gap-2 mt-6">
+          <CreditCard size={20} /> Billing & Plan
+        </p>
+        <Separator />
+        <p className="text-muted-foreground">
+          You are currently on a{" "}
+          {subscription?.status === "active" ? "Pro" : "Free"} Plan
+        </p>
+        <Link
+          href={"/"}
+          target="_blank"
+          className="text-muted-foreground flex flex-row items-center gap-2"
+        >
+          View Plans <ExternalLink size={16} />
+        </Link>
+        {subscription?.status === "active" ? (
+          <div>
+            <Button
+              type="button"
+              size={"sm"}
+              variant={"secondary"}
+              //WIP disabled={loadingPortal}
+              className="text-sm"
+              //WIP onClick={redirectToCustomerPortal}
+            >
+              Manage Subscription
+            </Button>
+          </div>
+        ) : (
+          <div>
+            <Button
+              type="button"
+              size="sm"
+              variant={"secondary"}
+              className="text-sm"
+              onClick={() => {
+                setOpen(true);
+              }}
+            >
+              Start Plan
+            </Button>
+          </div>
+        )}
       </>
       <AlertDialog open={openAlertMessage}>
         <AlertDialogContent>
