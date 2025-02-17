@@ -38,7 +38,6 @@ import { useSocket } from "@/lib/providers/socket-provider";
 import { XCircleIcon } from "lucide-react";
 import { QuillOptions } from "quill";
 import { useSupabaseUser } from "@/lib/providers/supabase-user-provider";
-import { cursorTo } from "readline";
 
 interface QuillEditorProps {
   dirDetails: File | Folder | workspace;
@@ -66,34 +65,6 @@ var TOOLBAR_OPTIONS = [
 ];
 
 type QuillType = typeof import("quill").default;
-
-const dummyCollaborators: { id: string; email: string; avatarUrl: string }[] = [
-  {
-    id: "1",
-    email: "johndoe@example.com",
-    avatarUrl: "https://i.pravatar.cc/300?img=1",
-  },
-  {
-    id: "2",
-    email: "janedoe@example.com",
-    avatarUrl: "https://i.pravatar.cc/300?img=2",
-  },
-  {
-    id: "3",
-    email: "peterparker@example.com",
-    avatarUrl: "https://i.pravatar.cc/300?img=3",
-  },
-  {
-    id: "4",
-    email: "brucewayne@example.com",
-    avatarUrl: "https://i.pravatar.cc/300?img=4",
-  },
-  {
-    id: "5",
-    email: "clarkkent@example.com",
-    avatarUrl: "https://i.pravatar.cc/300?img=5",
-  },
-];
 
 const QuillEditor: React.FC<QuillEditorProps> = ({
   dirDetails,
@@ -186,29 +157,6 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     }
   }, [state, pathname, workspaceId]);
 
-  //
-  /*
-  const wrapperRef = useCallback((wrapper: HTMLDivElement | null) => {
-    if (typeof window !== "undefined") {
-      if (wrapper === null) return;
-      wrapper.innerHTML = "";
-      const editor = document.createElement("div");
-      wrapper.append(editor);
-
-      // useCallback은  async/await 을 지원하지 않음..
-      import("quill").then((Quill) => {
-        const q = new Quill.default(editor, {
-          theme: "snow",
-          modules: {
-            toolbar: TOOLBAR_OPTIONS,
-            // WIP cursors
-          },
-        });
-        setQuill(q);
-      });
-    }
-  }, []);
-  */
   const wrapperRef = useCallback((wrapper: HTMLDivElement | null) => {
     if (typeof window === "undefined" || !wrapper) return;
 
