@@ -21,9 +21,9 @@ const PlanUsage: React.FC<PlanUsageProps> = ({
   );
 
   useEffect(() => {
-    const stateFoldersLength = state.workspaces.find(
-      (workspace) => workspace.id === workspaceId
-    )?.folders.length;
+    const stateFoldersLength = state.workspaces
+      .find((workspace) => workspace.id === workspaceId)
+      ?.folders.filter((folder) => !folder.inTrash).length;
     if (stateFoldersLength === undefined) return;
     setUsagePercentage((stateFoldersLength / MAX_FOLDERS_FREE_PLAN) * 100);
   }, [state, workspaceId]);

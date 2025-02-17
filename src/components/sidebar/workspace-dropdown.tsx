@@ -65,8 +65,8 @@ const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
       {isOpen && (
         <div
           className="origin-top-right
-        absolute
-        w-full
+        fixed
+        max-w-[400px]
         rounded-md
         shadow-md
         z-50
@@ -74,7 +74,7 @@ const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
         bg-black/10
         backdrop-blur-lg
         group
-        overflow-auto
+        overflow-y-auto
         border-[1px]
         border-muted
     "

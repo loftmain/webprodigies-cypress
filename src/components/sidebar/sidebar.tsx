@@ -68,7 +68,11 @@ const Sidebar: React.FC<SidebarProps> = async ({ params, className }) => {
           ].find((workspace) => workspace.id === workspaceId)}
         />
         <PlanUsage
-          foldersLength={workspaceFolderData?.length || 0}
+          foldersLength={
+            workspaceFolderData?.filter(
+              (workspaceFolder) => !workspaceFolder.inTrash
+            )?.length || 0
+          }
           subscription={subscriptionData}
         />
         <NativeNavigation myWorkspaceId={workspaceId} />
